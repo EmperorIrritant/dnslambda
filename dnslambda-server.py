@@ -15,28 +15,11 @@ import dns.rdatatype
 def main():
     where = '1.1.1.1'
     qname = 'example.com.'
-    # one method is to use context manager, session will automatically close
     with requests.sessions.Session() as session:
         q = dns.message.make_query(qname, dns.rdatatype.A)
         r = dns.query.https(q, where, session=session)
         for answer in r.answer:
             print(answer)
-
-        # ... do more lookups
-
-    where = 'https://dns.google/dns-query'
-    qname = 'example.net.'
-    # second method, close session manually
-    session = requests.sessions.Session()
-    q = dns.message.make_query(qname, dns.rdatatype.A)
-    r = dns.query.https(q, where, session=session)
-    for answer in r.answer:
-        print(answer)
-
-    # ... do more lookups
-
-    # close the session when you're done
-    session.close()
 
 if __name__ == '__main__':
     main()
