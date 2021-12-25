@@ -13,7 +13,7 @@ class TestLambdaServer(unittest.TestCase):
         return True
 
     def test_lambda_handler(self):
-        test_event = {"query": "example.com"}
+        test_event = {"query": {"qname": "example.com", "qtype": "A"}}
         test_context = {}
         self.assertIs(self.dnsresponse_parse(lambda_handler(test_event, test_context)), True, "Output error")
 

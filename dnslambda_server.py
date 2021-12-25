@@ -9,8 +9,9 @@ dohservers = ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-qu
 server = choice(dohservers)
 
 def lambda_handler(event, context):
-    qname = event["query"]
+    qname = event["query"]["qname"]
+    qtype = event["query"]["qtype"]
     with requests.sessions.Session() as session:
-        q = dns.message.make_query(qname, dns.rdatatype.A)
+        q = dns.message.make_query(qname, qtype)
         r = dns.query.https(q, server, session=session)
         return "\n".join([responseline.to_text() for responseline in r.answer])
