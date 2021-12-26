@@ -1,4 +1,5 @@
 import dnslib.server
+import argparse, sys, time
 
 class DNSRequestHandler(dnslib.server.DNSHandler):
     def handle(self):
@@ -21,10 +22,7 @@ class DummyResolver():
     def __init__(self):
         pass
 
-if __name__ == '__main__':
-
-    import argparse, sys, time
-
+def main():
     p = argparse.ArgumentParser(description="DNS Proxy")
     p.add_argument("--port","-p",type=int,default=53,
                     metavar="<port>",
@@ -35,8 +33,8 @@ if __name__ == '__main__':
 #    p.add_argument("--upstream","-u",default="8.8.8.8:53",
 #            metavar="<dns server:port>",
 #                    help="Upstream DNS server:port (default:8.8.8.8:53)")
-    p.add_argument("--tcp",action='store_true',default=False,
-                    help="TCP proxy (default: UDP only)")
+#    p.add_argument("--tcp",action='store_true',default=False,
+#                    help="TCP proxy (default: UDP only)")
 #    p.add_argument("--timeout","-o",type=float,default=5,
 #                    metavar="<timeout>",
 #                    help="Upstream timeout (default: 5s)")
@@ -59,21 +57,28 @@ if __name__ == '__main__':
     resolver = DummyResolver()
     handler = DNSRequestHandler
 #    logger = DNSLogger(args.log,args.log_prefix)
-    udp_server = dnslib.server.DNSServer(resolver,
-                           port=args.port,
-                           address=args.address,
-                           handler=handler)
-#                           logger=logger,
-    udp_server.start_thread()
 
-    if args.tcp:
+    try:
+        udp_server = dnslib.server.DNSServer(resolver,
+                                port=args.port,
+                                address=args.address,
+                                handler=handler)
+    #                           logger=logger,
+        udp_server.start_thread()
+
         tcp_server = dnslib.server.DNSServer(resolver,
-                               port=args.port,
-                               address=args.address,
-                               tcp=True,
-                               handler=handler)
-#                               logger=logger,
+                                port=args.port,
+                                address=args.address,
+                                tcp=True,
+                                handler=handler)
+    #                               logger=logger,
         tcp_server.start_thread()
 
-    while udp_server.isAlive():
-        time.sleep(1)
+        while udp_server.isAlive():
+            time.sleep(1)
+    except Exception as e:
+        print(args.port)
+        print(f"Exiting: {e}")
+
+if __name__ == '__main__':
+    main()
