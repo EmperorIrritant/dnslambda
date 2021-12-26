@@ -1,0 +1,122 @@
+BaseServer (socketserver)
+    Takes:
+        server_address
+        RequestHandlerClass
+    Sets:
+        self.server_address
+        self.RequestHandlerClass
+    Defines:
+        finish_request
+            Takes:
+                request
+                client_address
+            Instantiates:
+                RequestHandlerClass
+                    with:
+                        request
+                        client_address
+                        self
+
+ThreadingMixIn
+    Defines:
+        process_request_thread
+            Takes:
+                request
+                client_address
+            Calls:
+                self.finish_request
+                    Takes:
+                        request
+                        client_address
+
+TCPServer (socketserver)
+    Derives: BaseServer (socketserver)
+    Takes:
+        server_address
+        RequestHandlerClass
+    Instantiates:
+        BaseServer (socketserver)
+        with:
+            server_address
+            RequestHandlerClass
+
+UDPServer (socketserver)
+    Derives: TCPServer (socketserver)
+
+TCPServer (dnslib)
+    Derives: TCPServer (socketserver), ThreadingMixIn (socketserver)
+    Instantiates:
+          TCPServer (socketserver)
+          with:
+            server_address
+            handler
+
+UDPServer (dnslib)
+    Derives: UDPServer (socketserver), ThreadingMixIn (socketserver)
+    Instantiates:
+        UDPServer (socketserver)
+          with:
+            server_address
+            handler      
+
+DNSServer (dnslib)
+    Takes: resolver, handler
+    Other Requires: server (socketserver class) - TCPServer  (dnslib), UDPServer (dnslib)
+    Sets: self.server.resolver = resolver
+          self.server = server
+                        takes: dns_host, dns_port, handler
+
+BaseRequestHandler (socketserver)
+    Takes:
+        request
+            Received:
+                Instantiation at BaseServer
+        client_address
+            Received:
+                Instantiation at BaseServer
+        server
+            Received:
+                Instantiation at BaseServer
+    Sets:
+        self.request
+        self.client_address
+        self.server
+    Calls:
+        self.handle()
+
+DNSHandler (dnslib)
+    Derives: BaseRequestHandler (socketserver)
+    Uses:
+        self.request
+            Type: DNSRecord
+        self.resolver
+    Defines:
+        handle()
+            Called by:
+                BaseRequestHandler, on instantiation
+        get_reply()
+            Called by:
+                DNSHandler.handle
+
+BaseResolver (dnslib)
+
+ProxyResolver (dnslib)
+    Derives: BaseResolver
+    Takes:
+        address
+        port
+    Sets:
+        self.address
+        self.port
+    Defines:
+        resolve()
+            Takes:
+                request
+                handler
+            Calls:
+                request.send
+                    with:
+                        self.address
+                        self.port
+            Called by:
+                DNSHandler.get_reply
