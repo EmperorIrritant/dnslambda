@@ -5,6 +5,8 @@ import socket
 import struct
 import socketserver
 
+import dnslambda_server
+
 class DNSRequestHandler(socketserver.BaseRequestHandler):
 
     udplen = 0
@@ -37,7 +39,7 @@ class DNSRequestHandler(socketserver.BaseRequestHandler):
 
             # make DNSRecord from get_reply response
             response = request.reply()
-            response.add_answer(*RR.fromZone("abc.com A 1.2.3.4"))
+            response.add_answer(*RR.fromZone(reply))
 
             # pack DNSRecord object with dnslib
             if self.protocol == 'udp':
@@ -60,7 +62,9 @@ class DNSRequestHandler(socketserver.BaseRequestHandler):
     def get_reply(self, data):
         # call Lambda with AWS user credentials (Later - call using a Role given by Cognito)
         # get response from Lambda as text
-        pass
+        qname, qtype = data
+        event = {"query": {"qname": qname, "qtype": qtype}}
+        return dnslambda_server.lambda_handler(event, {})
 
 class DummyResolver():
     def __init__(self):
